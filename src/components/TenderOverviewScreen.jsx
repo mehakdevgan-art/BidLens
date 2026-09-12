@@ -1,24 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  ChevronLeft, 
-  FileText, 
-  Calendar, 
-  Building2, 
-  CheckCircle2, 
-  Clock, 
-  ShieldCheck, 
-  Sparkles, 
-  Lock, 
-  Unlock, 
-  ExternalLink,
-  Info,
-  AlertTriangle
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { ChevronLeft, Lock, CheckCircle2 } from 'lucide-react';
 import ChecklistTable from './ChecklistTable';
 import TenderDocModal from './TenderDocModal';
 
@@ -41,7 +22,6 @@ export default function TenderOverviewScreen({
   const handleApproveClick = () => {
     if (reqCount === 0) return;
     if (isApproved) {
-      // Toggle unlock if officer wants to re-edit
       onApproveChecklist(tender.tender_id, false);
     } else {
       setConfirmApproveOpen(true);
@@ -53,232 +33,144 @@ export default function TenderOverviewScreen({
     setConfirmApproveOpen(false);
   };
 
+  const renderStatusLabel = () => {
+    if (isApproved) {
+      return (
+        <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md inline-block">
+          Checklist Approved & Locked
+        </span>
+      );
+    }
+    return (
+      <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-md inline-block">
+        Pending Officer Approval
+      </span>
+    );
+  };
+
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full px-8 py-8 space-y-8">
       {/* Top Breadcrumb Navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-xs font-medium text-[#786F66]">
+      <div className="flex items-center justify-between text-sm text-[#786F66]">
+        <div className="flex items-center space-x-2 font-semibold">
           <button 
             onClick={onBackToDashboard}
             className="flex items-center space-x-1 hover:text-[#B3432E] transition-colors"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-4 h-4" />
             <span>Tenders</span>
           </button>
           <span>/</span>
-          <span className="font-mono font-bold text-[#B3432E]">{tender.tender_id}</span>
+          <span className="font-mono font-extrabold text-[#B3432E]">{tender.tender_id}</span>
           <span>/</span>
-          <span className="text-[#2B2523] font-semibold">Compliance Checklist</span>
+          <span className="text-[#2B2523] font-extrabold">Compliance Checklist</span>
         </div>
 
-        <Badge variant="outline" className="text-xs border-[#E5E0DA] bg-white text-[#786F66]">
-          GeM Reference: {tender.tender_id}
-        </Badge>
+        <span className="font-mono font-bold text-[#786F66]">GeM Ref: {tender.tender_id}</span>
       </div>
 
-      {/* Tender Header Card */}
-      <Card className="border-[#E5E0DA] bg-white overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-mono font-bold text-[#B3432E] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                  {tender.tender_id}
-                </span>
-                {isApproved ? (
-                  <Badge variant="success" className="flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Checklist Approved & Locked
-                  </Badge>
-                ) : (
-                  <Badge variant="warning" className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Pending Officer Approval
-                  </Badge>
-                )}
-                <Badge variant="secondary" className="text-xs">{tender.department}</Badge>
-              </div>
-
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#2B2523]">
-                {tender.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-4 text-xs text-[#786F66]">
-                <div className="flex items-center space-x-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#786F66]" />
-                  <span>Buyer: <strong className="text-[#2B2523]">{tender.department}</strong></span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#786F66]" />
-                  <span>Published: <strong className="text-[#2B2523]">{tender.published_date}</strong></span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <Clock className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Deadline: <strong className="text-[#2B2523]">{tender.deadline}</strong></span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="font-semibold text-[#2B2523]">Est Value: {tender.estimated_value}</span>
-                </div>
-              </div>
+      {/* Tender Header & Plain Label/Value Rows Stack */}
+      <div className="border border-[#E5E0DA] bg-white rounded-2xl p-8 space-y-6 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#E5E0DA]">
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3">
+              <span className="font-mono font-extrabold text-sm text-[#B3432E]">{tender.tender_id}</span>
+              {renderStatusLabel()}
             </div>
-
-            {/* Action Buttons Header */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDocModalOpen(true)}
-                className="text-xs flex items-center space-x-2 border-[#E5E0DA] bg-white hover:bg-[#FAF8F5]"
-              >
-                <FileText className="w-4 h-4 text-[#B3432E]" />
-                <span>View Tender Document</span>
-              </Button>
-
-              <Button
-                size="sm"
-                disabled={reqCount === 0}
-                onClick={handleApproveClick}
-                className={`text-xs font-semibold flex items-center space-x-2 transition-all ${
-                  isApproved
-                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
-                    : 'bg-[#B3432E] hover:bg-[#9E3824] text-white shadow-sm'
-                }`}
-              >
-                {isApproved ? (
-                  <>
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Checklist Approved ✓</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Approve Checklist</span>
-                  </>
-                )}
-              </Button>
-            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#2B2523]">{tender.title}</h1>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Horizontal Step Progress Tracker */}
-      <Card className="border-[#E5E0DA] bg-[#F8F5F0]">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg border border-[#E5E0DA]">
-              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                ✓
-              </div>
-              <div>
-                <p className="font-bold text-[#2B2523]">Step 1: Document Upload</p>
-                <p className="text-[11px] text-[#786F66]">GeM PDF Parsing Completed</p>
-              </div>
-            </div>
+          {/* Action Header: EXACTLY ONE SOLID PRIMARY BUTTON */}
+          <div className="flex items-center space-x-4 shrink-0">
+            {/* Secondary Action: Plain Outlined Button */}
+            <button
+              onClick={() => setDocModalOpen(true)}
+              className="px-5 py-2.5 border border-[#E5E0DA] hover:bg-[#FAF8F5] text-[#2B2523] rounded-xl text-sm font-semibold transition-colors"
+            >
+              View Tender Document
+            </button>
 
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg border border-[#E5E0DA]">
-              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                ✓
-              </div>
-              <div>
-                <p className="font-bold text-[#2B2523]">Step 2: AI Clause Extraction</p>
-                <p className="text-[11px] text-[#786F66]">{reqCount} Eligibility Rules Extracted</p>
-              </div>
-            </div>
-
-            <div className={`flex items-center space-x-3 p-2 rounded-lg border ${
-              isApproved 
-                ? 'bg-emerald-50 border-emerald-200' 
-                : 'bg-rose-50 border-rose-200'
-            }`}>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
-                isApproved 
-                  ? 'bg-emerald-600 text-white' 
-                  : 'bg-[#B3432E] text-white animate-pulse'
-              }`}>
-                {isApproved ? '✓' : '3'}
-              </div>
-              <div>
-                <p className={`font-bold ${isApproved ? 'text-emerald-800' : 'text-[#B3432E]'}`}>
-                  Step 3: Officer Approval
-                </p>
-                <p className="text-[11px] text-[#786F66]">
-                  {isApproved ? 'Approved by Officer Mehak' : 'Awaiting Final Review'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Tabs Container */}
-      <Tabs defaultValue="checklist" className="w-full">
-        <div className="flex items-center justify-between border-b border-[#E5E0DA] pb-2">
-          <TabsList className="bg-[#F3EFE9]">
-            <TabsTrigger value="checklist" className="flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Compliance Checklist ({reqCount})</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center space-x-2">
-              <FileText className="w-4 h-4" />
-              <span>Raw Tender Documents</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="hidden sm:flex items-center space-x-2 text-xs text-[#786F66]">
-            <Sparkles className="w-3.5 h-3.5 text-[#B3432E]" />
-            <span>AI Extraction Confidence: <strong className="text-[#2B2523]">98.4%</strong></span>
+            {/* SINGLE SOLID PRIMARY BUTTON FOR SCREEN */}
+            <button
+              disabled={reqCount === 0}
+              onClick={handleApproveClick}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center space-x-2 transition-colors ${
+                isApproved
+                  ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                  : 'bg-[#B3432E] hover:bg-[#9E3824] text-white shadow-xs'
+              }`}
+            >
+              {isApproved ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Checklist Approved ✓</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Approve Checklist</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Tab 1: Compliance Checklist */}
-        <TabsContent value="checklist" className="mt-4">
-          <ChecklistTable
-            tender={tender}
-            requirements={tender.requirements}
-            onAddRequirement={onAddRequirement}
-            onEditRequirement={onEditRequirement}
-            onDeleteRequirement={onDeleteRequirement}
-            isApproved={isApproved}
-          />
-        </TabsContent>
+        {/* STACKED LIST: Plain Label/Value Rows (High Readability) */}
+        <div className="divide-y divide-[#E5E0DA] text-sm md:text-base">
+          <div className="py-3.5 flex justify-between items-center">
+            <span className="text-[#786F66] font-medium">Buyer Department</span>
+            <span className="font-bold text-[#2B2523]">{tender.department}</span>
+          </div>
 
-        {/* Tab 2: Documents Tab */}
-        <TabsContent value="documents" className="mt-4 space-y-4">
-          <Card className="border-[#E5E0DA] bg-white p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-[#2B2523]">Uploaded GeM RFP Documents</h3>
-                <p className="text-xs text-[#786F66]">Uploaded tender PDF specifications and clause references</p>
-              </div>
-              <Button size="sm" onClick={() => setDocModalOpen(true)} className="bg-[#B3432E] text-white text-xs">
-                Launch Full Document Reader
-              </Button>
-            </div>
+          <div className="py-3.5 flex justify-between items-center">
+            <span className="text-[#786F66] font-medium">Published Date</span>
+            <span className="font-semibold text-[#2B2523]">{tender.published_date}</span>
+          </div>
 
-            <div className="border border-[#E5E0DA] rounded-lg divide-y divide-[#E5E0DA]">
-              <div className="p-4 flex items-center justify-between bg-[#FAF8F5]">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-6 h-6 text-[#B3432E]" />
-                  <div>
-                    <p className="text-sm font-semibold text-[#2B2523]">Tender_Specification_GEM_2024_001.pdf</p>
-                    <p className="text-xs text-[#786F66]">24 Pages • 4.2 MB • Uploaded 2026-08-28</p>
-                  </div>
-                </div>
-                <Badge variant="success">Parsed & Indexed</Badge>
-              </div>
+          <div className="py-3.5 flex justify-between items-center">
+            <span className="text-[#786F66] font-medium">Submission Deadline</span>
+            <span className="font-extrabold text-amber-900">{tender.deadline}</span>
+          </div>
 
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                  <div>
-                    <p className="text-sm font-semibold text-[#2B2523]">Special_Conditions_Of_Contract.pdf</p>
-                    <p className="text-xs text-[#786F66]">8 Pages • 1.1 MB • Uploaded 2026-08-28</p>
-                  </div>
-                </div>
-                <Badge variant="secondary">Supplementary</Badge>
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <div className="py-3.5 flex justify-between items-center">
+            <span className="text-[#786F66] font-medium">Estimated Value</span>
+            <span className="font-extrabold text-[#2B2523] text-lg">{tender.estimated_value}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* CLEAN STEP TRACKER STRIP */}
+      <div className="border border-[#E5E0DA] bg-white rounded-2xl p-5 text-sm font-semibold text-[#574E46] shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div><strong className="text-[#2B2523] font-bold">Step 1:</strong> Document Upload — Completed</div>
+          <span className="hidden sm:inline text-[#E5E0DA]">│</span>
+          <div><strong className="text-[#2B2523] font-bold">Step 2:</strong> AI Clause Extraction — Completed ({reqCount} Rules)</div>
+          <span className="hidden sm:inline text-[#E5E0DA]">│</span>
+          <div>
+            <strong className="text-[#2B2523] font-bold">Step 3:</strong> Officer Approval —{' '}
+            <span className={isApproved ? 'text-emerald-800 font-extrabold' : 'text-[#B3432E] font-extrabold'}>
+              {isApproved ? 'Approved' : 'Pending Review'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CHECKLIST WORKSTATION SECTION */}
+      <div className="space-y-5 pt-2">
+        <div className="border-b border-[#E5E0DA] pb-3 flex items-center justify-between">
+          <h2 className="text-base font-extrabold text-[#2B2523] uppercase tracking-wider">AI-Extracted Eligibility Conditions Checklist</h2>
+          <span className="text-xs text-[#786F66] font-bold">AI Extraction Confidence: 98.4%</span>
+        </div>
+
+        <ChecklistTable
+          tender={tender}
+          requirements={tender.requirements}
+          onAddRequirement={onAddRequirement}
+          onEditRequirement={onEditRequirement}
+          onDeleteRequirement={onDeleteRequirement}
+          isApproved={isApproved}
+        />
+      </div>
 
       {/* Tender Document Modal */}
       <TenderDocModal
@@ -288,38 +180,31 @@ export default function TenderOverviewScreen({
       />
 
       {/* APPROVE CHECKLIST CONFIRMATION DIALOG */}
-      <Dialog open={confirmApproveOpen} onOpenChange={setConfirmApproveOpen}>
-        <DialogContent className="sm:max-w-md border-[#E5E0DA]">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#2B2523] flex items-center space-x-2 text-[#B3432E]">
-              <ShieldCheck className="w-5 h-5" />
-              <span>Approve Eligibility Checklist</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#786F66] mt-1">
-              You are approving <strong className="text-[#2B2523]">{reqCount} eligibility requirements</strong> for tender <span className="font-mono text-[#B3432E]">{tender.tender_id}</span>.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-1">
-            <div className="flex items-center space-x-1.5 font-bold">
-              <AlertTriangle className="w-4 h-4 text-amber-700" />
-              <span>Officer Compliance Certification</span>
-            </div>
-            <p className="text-[11px] text-amber-800">
-              Once approved, these criteria will be used to evaluate incoming bidder documents on GeM portal.
+      {confirmApproveOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E5E0DA] rounded-2xl p-8 max-w-lg w-full space-y-5 shadow-2xl">
+            <h3 className="text-lg font-extrabold text-[#2B2523]">Approve Eligibility Checklist</h3>
+            <p className="text-sm text-[#786F66] leading-relaxed">
+              You are approving <strong className="text-[#2B2523] font-bold">{reqCount} eligibility requirements</strong> for tender <span className="font-mono font-bold text-[#B3432E]">{tender.tender_id}</span>. Once approved, these criteria lock the evaluation rules on the GeM portal.
             </p>
-          </div>
 
-          <DialogFooter className="pt-3">
-            <Button variant="outline" size="sm" onClick={() => setConfirmApproveOpen(false)}>
-              Back to Review
-            </Button>
-            <Button size="sm" onClick={handleConfirmApproval} className="bg-[#B3432E] hover:bg-[#9E3824] text-white">
-              Confirm & Approve Checklist ✓
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <div className="flex justify-end space-x-3 pt-3">
+              <button 
+                onClick={() => setConfirmApproveOpen(false)}
+                className="px-4 py-2 border border-[#E5E0DA] text-[#574E46] hover:bg-[#FAF8F5] rounded-xl text-sm font-semibold"
+              >
+                Back to Review
+              </button>
+              <button 
+                onClick={handleConfirmApproval}
+                className="px-5 py-2 bg-[#B3432E] hover:bg-[#9E3824] text-white rounded-xl text-sm font-extrabold shadow-xs"
+              >
+                Confirm & Approve Checklist ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

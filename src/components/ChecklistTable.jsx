@@ -1,22 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  FileText, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle,
-  Layers,
-  Filter,
-  Check
-} from 'lucide-react';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { Plus, Edit3, Trash2 } from 'lucide-react';
 
 export default function ChecklistTable({ 
   tender, 
@@ -131,18 +114,6 @@ export default function ChecklistTable({
     }
   };
 
-  const getCategoryBadgeVariant = (cat) => {
-    switch (cat) {
-      case 'POLICY': return 'maroon';
-      case 'FINANCIAL': return 'info';
-      case 'LEGAL': return 'warning';
-      case 'QUALITY': return 'success';
-      case 'AUTHORIZATION': return 'secondary';
-      case 'EXPERIENCE': return 'outline';
-      default: return 'secondary';
-    }
-  };
-
   const formatCondition = (req) => {
     const valDisplay = req.unit ? `${req.required_value} ${req.unit}` : req.required_value;
     return `${req.operator} ${valDisplay}`;
@@ -150,20 +121,18 @@ export default function ChecklistTable({
 
   return (
     <div className="space-y-5">
-      {/* Table Header & Category Filter Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
-          <span className="text-xs font-semibold text-[#786F66] flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5" /> Category:
-          </span>
+      {/* Category Filter Pills (Text Buttons) */}
+      <div className="flex items-center justify-between pb-3 border-b border-[#E5E0DA]">
+        <div className="flex items-center space-x-2.5 overflow-x-auto">
+          <span className="text-xs text-[#786F66] font-bold mr-1 uppercase tracking-wider">Category:</span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-colors ${
                 selectedCategory === cat
-                  ? 'bg-[#B3432E] text-white shadow-xs font-semibold'
-                  : 'bg-white border border-[#E5E0DA] text-[#574E46] hover:bg-[#F3EFE9]'
+                  ? 'bg-[#2B2523] text-white shadow-xs'
+                  : 'text-[#574E46] hover:bg-[#F5F1EB]'
               }`}
             >
               {cat}
@@ -171,335 +140,343 @@ export default function ChecklistTable({
           ))}
         </div>
 
-        <div className="flex items-center space-x-2 self-end sm:self-auto">
-          <span className="text-xs text-[#786F66]">
-            Showing <strong className="text-[#2B2523]">{filteredRequirements.length}</strong> of <strong>{requirements.length}</strong> clauses
-          </span>
-        </div>
+        <span className="text-xs text-[#786F66] font-semibold">
+          Showing {filteredRequirements.length} of {requirements.length} conditions
+        </span>
       </div>
 
-      {/* Checklist Table using shadcn Table */}
-      <div className="bg-white rounded-xl border border-[#E5E0DA] overflow-hidden shadow-xs">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px] text-center">#</TableHead>
-              <TableHead className="w-[240px]">Requirement Name</TableHead>
-              <TableHead className="w-[200px]">Condition / Expected Value</TableHead>
-              <TableHead className="w-[180px]">Source Reference</TableHead>
-              <TableHead className="w-[140px]">Category</TableHead>
-              <TableHead className="text-right w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      {/* STRIPPED-DOWN CHECKLIST TABLE */}
+      <div className="border border-[#E5E0DA] bg-white rounded-2xl overflow-hidden shadow-xs">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-[#E5E0DA] text-xs font-extrabold uppercase tracking-wider text-[#574E46]">
+              <th className="py-4 px-6 w-[50px] text-center">#</th>
+              <th className="py-4 px-6">Requirement Name</th>
+              <th className="py-4 px-6">Condition / Expected Value</th>
+              <th className="py-4 px-6">Source Reference</th>
+              <th className="py-4 px-6">Category</th>
+              <th className="py-4 px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E5E0DA] text-sm">
             {filteredRequirements.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-[#786F66]">
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-[#786F66] text-sm">
                   No requirements found in category "{selectedCategory}".
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
               filteredRequirements.map((req, idx) => (
-                <TableRow key={req.requirement_id} className="hover:bg-[#FAF6F0] transition-colors">
-                  <TableCell className="text-center font-mono text-xs font-bold text-[#786F66]">
+                <tr key={req.requirement_id} className="hover:bg-[#FAF8F5] transition-colors">
+                  <td className="py-4 px-6 text-center font-mono font-bold text-[#786F66] text-sm">
                     {idx + 1}
-                  </TableCell>
+                  </td>
 
-                  <TableCell className="font-semibold text-sm text-[#2B2523]">
-                    <div className="flex items-center space-x-2">
-                      <span>{req.name}</span>
-                      <span className="text-[10px] font-mono text-[#786F66]">({req.requirement_id})</span>
-                    </div>
-                  </TableCell>
+                  <td className="py-4 px-6 font-bold text-[#2B2523] text-base">
+                    {req.name} <span className="text-xs font-mono font-semibold text-[#786F66]">({req.requirement_id})</span>
+                  </td>
 
-                  <TableCell>
-                    <span className="font-semibold text-xs text-[#B3432E] bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200 inline-block">
-                      {formatCondition(req)}
-                    </span>
-                  </TableCell>
+                  <td className="py-4 px-6 font-extrabold text-base text-[#B3432E]">
+                    {formatCondition(req)}
+                  </td>
 
-                  <TableCell>
-                    <div className="flex items-center space-x-1.5 text-xs text-[#574E46]">
-                      <FileText className="w-3.5 h-3.5 text-[#786F66]" />
-                      <span>Clause <strong className="text-[#2B2523]">{req.source.clause}</strong></span>
-                      <span className="text-[#786F66]">•</span>
-                      <span className="text-[#786F66]">Page {req.source.page}</span>
-                    </div>
-                  </TableCell>
+                  <td className="py-4 px-6 text-[#574E46] font-semibold text-sm">
+                    Clause <strong className="text-[#2B2523]">{req.source.clause}</strong> • Page {req.source.page}
+                  </td>
 
-                  <TableCell>
-                    <Badge variant={getCategoryBadgeVariant(req.category)} className="text-[11px] px-2 py-0.5">
-                      {req.category}
-                    </Badge>
-                  </TableCell>
+                  <td className="py-4 px-6 text-xs font-extrabold uppercase tracking-wider text-[#574E46]">
+                    {req.category}
+                  </td>
 
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
+                  <td className="py-4 px-6 text-right">
+                    <div className="flex items-center justify-end space-x-3">
+                      <button
                         disabled={isApproved}
                         onClick={() => handleOpenEdit(req)}
-                        title="Edit Requirement"
-                        className="h-8 w-8 text-[#786F66] hover:text-[#B3432E] hover:bg-rose-50"
+                        className="text-[#786F66] hover:text-[#B3432E] disabled:opacity-30 p-1"
+                        title="Edit"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </Button>
+                        <Edit3 className="w-4 h-4" />
+                      </button>
 
-                      <Button
-                        size="icon"
-                        variant="ghost"
+                      <button
                         disabled={isApproved}
                         onClick={() => handleOpenDelete(req.requirement_id)}
-                        title="Delete Requirement"
-                        className="h-8 w-8 text-[#786F66] hover:text-red-600 hover:bg-red-50"
+                        className="text-[#786F66] hover:text-red-700 disabled:opacity-30 p-1"
+                        title="Delete"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
 
-        {/* Add Requirement Row / Button at bottom */}
-        <div className="p-3 bg-[#F8F5F0] border-t border-[#E5E0DA] flex items-center justify-between">
-          <Button
+        {/* Bottom Add Action Row */}
+        <div className="p-4 bg-[#FAF8F5] border-t border-[#E5E0DA] flex items-center justify-between">
+          <button
             onClick={handleOpenAdd}
             disabled={isApproved}
-            variant="outline"
-            className="w-full sm:w-auto border-dashed border-[#B3432E]/40 text-[#B3432E] hover:bg-rose-50 hover:border-[#B3432E] flex items-center justify-center space-x-2 text-xs font-semibold py-2"
+            className="border border-[#E5E0DA] bg-white text-[#2B2523] hover:bg-[#F5F1EB] disabled:opacity-40 px-4 py-2 rounded-xl text-sm font-semibold flex items-center space-x-2 transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Manual Condition / Requirement</span>
-          </Button>
+            <Plus className="w-4 h-4 text-[#B3432E]" />
+            <span>Add Condition</span>
+          </button>
 
-          <span className="hidden sm:block text-xs text-[#786F66]">
-            {isApproved ? 'Checklist is approved and locked' : 'Click + to add missed tender clause condition'}
+          <span className="text-xs text-[#786F66] font-medium">
+            {isApproved ? 'Checklist approved and locked' : 'Click + to add a missed clause'}
           </span>
         </div>
       </div>
 
-      {/* ADD REQUIREMENT DIALOG */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-md border-[#E5E0DA]">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#2B2523] flex items-center space-x-2">
-              <Plus className="w-4 h-4 text-[#B3432E]" />
-              <span>Add Eligibility Requirement</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#786F66]">
-              Manually add a missed eligibility condition to tender checklist.
-            </DialogDescription>
-          </DialogHeader>
+      {/* ADD DIALOG */}
+      {isAddOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E5E0DA] rounded-2xl p-8 max-w-lg w-full space-y-4 shadow-2xl">
+            <h3 className="text-lg font-extrabold text-[#2B2523]">Add Eligibility Requirement</h3>
 
-          <form onSubmit={handleSaveAdd} className="space-y-4 py-2">
-            <div>
-              <label className="text-xs font-medium text-[#2B2523] block mb-1">Requirement Name</label>
-              <Input
-                required
-                placeholder="e.g. Local Content Percentage"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSaveAdd} className="space-y-4 py-1 text-sm">
               <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Category</label>
-                <Select value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                  {categories.filter(c => c !== 'ALL').map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Operator</label>
-                <Select value={formOperator} onChange={(e) => setFormOperator(e.target.value)}>
-                  <option value=">=">&gt;= (At least)</option>
-                  <option value="<=">&lt;= (Maximum)</option>
-                  <option value="==">== (Exact match)</option>
-                  <option value=">">&gt; (Greater than)</option>
-                  <option value="<">&lt; (Less than)</option>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Required Value</label>
-                <Input
+                <label className="font-bold text-[#2B2523] block mb-1">Requirement Name</label>
+                <input
                   required
-                  placeholder="e.g. 50"
-                  value={formValue}
-                  onChange={(e) => setFormValue(e.target.value)}
+                  placeholder="e.g. Local Content Percentage"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Unit / Format</label>
-                <Input
-                  placeholder="e.g. %, Cr, Years, Valid"
-                  value={formUnit}
-                  onChange={(e) => setFormUnit(e.target.value)}
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Category</label>
+                  <select 
+                    value={formCategory} 
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none"
+                  >
+                    {categories.filter(c => c !== 'ALL').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Clause Ref</label>
-                <Input
-                  placeholder="e.g. 8.2"
-                  value={formClause}
-                  onChange={(e) => setFormClause(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Page Number</label>
-                <Input
-                  type="number"
-                  placeholder="e.g. 14"
-                  value={formPage}
-                  onChange={(e) => setFormPage(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsAddOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" className="bg-[#B3432E] hover:bg-[#9E3824] text-white">
-                Save Requirement
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* EDIT REQUIREMENT DIALOG */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-md border-[#E5E0DA]">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#2B2523] flex items-center space-x-2">
-              <Edit3 className="w-4 h-4 text-[#B3432E]" />
-              <span>Edit Requirement Rule</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#786F66]">
-              Modify condition values or source clause details.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
-            <div>
-              <label className="text-xs font-medium text-[#2B2523] block mb-1">Requirement Name</label>
-              <Input
-                required
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Category</label>
-                <Select value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                  {categories.filter(c => c !== 'ALL').map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </Select>
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Operator</label>
+                  <select 
+                    value={formOperator} 
+                    onChange={(e) => setFormOperator(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none"
+                  >
+                    <option value=">=">&gt;= (At least)</option>
+                    <option value="<=">&lt;= (Maximum)</option>
+                    <option value="==">== (Exact match)</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Operator</label>
-                <Select value={formOperator} onChange={(e) => setFormOperator(e.target.value)}>
-                  <option value=">=">&gt;= (At least)</option>
-                  <option value="<=">&lt;= (Maximum)</option>
-                  <option value="==">== (Exact match)</option>
-                  <option value=">">&gt; (Greater than)</option>
-                  <option value="<">&lt; (Less than)</option>
-                </Select>
-              </div>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Required Value</label>
+                  <input
+                    required
+                    placeholder="e.g. 50"
+                    value={formValue}
+                    onChange={(e) => setFormValue(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Unit</label>
+                  <input
+                    placeholder="e.g. %, Cr, Years"
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Clause Ref</label>
+                  <input
+                    placeholder="e.g. 8.2"
+                    value={formClause}
+                    onChange={(e) => setFormClause(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Page Number</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 14"
+                    value={formPage}
+                    onChange={(e) => setFormPage(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddOpen(false)}
+                  className="px-4 py-2 border border-[#E5E0DA] text-[#574E46] rounded-xl text-sm font-semibold"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2 bg-[#B3432E] text-white rounded-xl text-sm font-extrabold"
+                >
+                  Save Requirement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT DIALOG */}
+      {isEditOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E5E0DA] rounded-2xl p-8 max-w-lg w-full space-y-4 shadow-2xl">
+            <h3 className="text-lg font-extrabold text-[#2B2523]">Edit Requirement Rule</h3>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4 py-1 text-sm">
               <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Required Value</label>
-                <Input
+                <label className="font-bold text-[#2B2523] block mb-1">Requirement Name</label>
+                <input
                   required
-                  value={formValue}
-                  onChange={(e) => setFormValue(e.target.value)}
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Unit / Format</label>
-                <Input
-                  value={formUnit}
-                  onChange={(e) => setFormUnit(e.target.value)}
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Category</label>
+                  <select 
+                    value={formCategory} 
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none"
+                  >
+                    {categories.filter(c => c !== 'ALL').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Clause Ref</label>
-                <Input
-                  value={formClause}
-                  onChange={(e) => setFormClause(e.target.value)}
-                />
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Operator</label>
+                  <select 
+                    value={formOperator} 
+                    onChange={(e) => setFormOperator(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none"
+                  >
+                    <option value=">=">&gt;= (At least)</option>
+                    <option value="<=">&lt;= (Maximum)</option>
+                    <option value="==">== (Exact match)</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Page Number</label>
-                <Input
-                  type="number"
-                  value={formPage}
-                  onChange={(e) => setFormPage(e.target.value)}
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Required Value</label>
+                  <input
+                    required
+                    value={formValue}
+                    onChange={(e) => setFormValue(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsEditOpen(false)}>
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Unit</label>
+                  <input
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Clause Ref</label>
+                  <input
+                    value={formClause}
+                    onChange={(e) => setFormClause(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#2B2523] block mb-1">Page Number</label>
+                  <input
+                    type="number"
+                    value={formPage}
+                    onChange={(e) => setFormPage(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditOpen(false)}
+                  className="px-4 py-2 border border-[#E5E0DA] text-[#574E46] rounded-xl text-sm font-semibold"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2 bg-[#B3432E] text-white rounded-xl text-sm font-extrabold"
+                >
+                  Update Requirement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE DIALOG */}
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E5E0DA] rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <h3 className="text-lg font-extrabold text-red-700">Delete Requirement</h3>
+            <p className="text-sm text-[#786F66] leading-relaxed font-medium">
+              Are you sure you want to remove this requirement from the checklist?
+            </p>
+
+            <div className="flex justify-end space-x-3 pt-2">
+              <button 
+                onClick={() => setIsDeleteOpen(false)}
+                className="px-4 py-2 border border-[#E5E0DA] text-[#574E46] rounded-xl text-sm font-semibold"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" size="sm" className="bg-[#B3432E] hover:bg-[#9E3824] text-white">
-                Update Requirement
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* DELETE CONFIRMATION DIALOG */}
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="sm:max-w-sm border-[#E5E0DA]">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[#2B2523] flex items-center space-x-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <span>Confirm Requirement Deletion</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#786F66] mt-2">
-              Are you sure you want to remove this requirement from the compliance checklist? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="pt-3">
-            <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(false)}>
-              Cancel
-            </Button>
-            <Button size="sm" variant="destructive" onClick={handleConfirmDelete}>
-              Delete Requirement
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </button>
+              <button 
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-red-700 text-white rounded-xl text-sm font-extrabold"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
