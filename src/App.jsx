@@ -121,7 +121,6 @@ export default function App() {
             <DashboardScreen
               tenders={tenders}
               onSelectTender={handleSelectTender}
-              onStartNewScan={() => setScanModalOpen(true)}
               searchQuery={searchQuery}
             />
           )}
@@ -130,7 +129,6 @@ export default function App() {
             <TendersListScreen
               tenders={tenders}
               onSelectTender={handleSelectTender}
-              onStartNewScan={() => setScanModalOpen(true)}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
@@ -145,6 +143,24 @@ export default function App() {
               onDeleteRequirement={handleDeleteRequirement}
               onApproveChecklist={handleApproveChecklist}
             />
+          )}
+
+          {currentView === 'audit_trail' && (
+            <div className="p-8 max-w-7xl mx-auto space-y-4">
+              <h1 className="text-xl font-bold text-[#2B2523]">Audit Trail Log</h1>
+              <div className="border border-[#E5E0DA] bg-white rounded-xl p-8 text-center text-xs text-[#786F66]">
+                Audit Trail & Officer Action Logs module (Teammate Scope). Select Dashboard or Tenders to navigate back.
+              </div>
+            </div>
+          )}
+
+          {currentView === 'settings' && (
+            <div className="p-8 max-w-7xl mx-auto space-y-4">
+              <h1 className="text-xl font-bold text-[#2B2523]">Workstation Settings</h1>
+              <div className="border border-[#E5E0DA] bg-white rounded-xl p-8 text-center text-xs text-[#786F66]">
+                GeM Compliance Engine & Notification Settings. Select Dashboard or Tenders to navigate back.
+              </div>
+            </div>
           )}
         </main>
       </div>

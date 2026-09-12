@@ -1,40 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UploadCloud, FileText, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, Upload, PlusCircle } from 'lucide-react';
 
 export default function NewTenderScanModal({ open, onOpenChange, onAddNewTender }) {
-  const [step, setStep] = useState(1); // 1: Input details, 2: Scanning simulation, 3: Completed
+  if (!open) return null;
+
+  const [step, setStep] = useState(1);
   const [tenderTitle, setTenderTitle] = useState('');
   const [department, setDepartment] = useState('Ministry of Education');
   const [estimatedValue, setEstimatedValue] = useState('₹ 6.50 Crore');
   const [progress, setProgress] = useState(0);
-  const [currentActionText, setCurrentActionText] = useState('');
 
   const handleStartScan = (e) => {
     e.preventDefault();
     if (!tenderTitle.trim()) return;
 
     setStep(2);
-    setProgress(15);
-    setCurrentActionText('Step 1/3: Reading uploaded GeM RFP PDF document...');
+    setProgress(30);
 
     setTimeout(() => {
-      setProgress(45);
-      setCurrentActionText('Step 2/3: Running AI NLP Clause Extractor on 18 pages...');
+      setProgress(70);
     }, 1200);
 
     setTimeout(() => {
-      setProgress(85);
-      setCurrentActionText('Step 3/3: Mapping eligibility requirements & clause references...');
-    }, 2400);
-
-    setTimeout(() => {
       setProgress(100);
-      setCurrentActionText('Extraction Complete!');
       
       const newTenderId = `GEM/2024/${Math.floor(100 + Math.random() * 900)}`;
       const newTender = {
@@ -68,23 +56,13 @@ export default function NewTenderScanModal({ open, onOpenChange, onAddNewTender 
             unit: "%",
             source: { clause: "5.4", page: 9 },
             approved: true
-          },
-          {
-            requirement_id: `REQ_${Date.now()}_3`,
-            name: "Past Execution Experience",
-            category: "EXPERIENCE",
-            operator: ">=",
-            required_value: 3,
-            unit: "Years",
-            source: { clause: "7.1", page: 15 },
-            approved: true
           }
         ]
       };
 
       onAddNewTender(newTender);
       setStep(3);
-    }, 3600);
+    }, 2500);
   };
 
   const handleClose = () => {
@@ -95,117 +73,118 @@ export default function NewTenderScanModal({ open, onOpenChange, onAddNewTender 
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg border-[#E5E0DA]">
-        <DialogHeader>
-          <DialogTitle className="text-base font-bold text-[#2B2523] flex items-center space-x-2">
-            <PlusCircle className="w-5 h-5 text-[#B3432E]" />
-            <span>New Tender Scan & Extraction</span>
-          </DialogTitle>
-          <DialogDescription className="text-xs text-[#786F66]">
-            Upload a new GeM RFP document to automatically extract eligibility checklist conditions using AI.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white border border-[#E5E0DA] rounded-2xl p-8 max-w-2xl w-full space-y-6 shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-[#E5E0DA] pb-5">
+          <div>
+            <h3 className="text-xl font-extrabold text-[#2B2523]">New Tender Scan</h3>
+            <p className="text-sm text-[#786F66] font-medium mt-1">Upload an RFP document to extract eligibility conditions using AI</p>
+          </div>
+          <button onClick={handleClose} className="text-[#786F66] hover:text-[#2B2523] text-lg font-bold px-3 py-2 rounded-xl hover:bg-[#F5F1EB] transition-colors">✕</button>
+        </div>
 
         {step === 1 && (
-          <form onSubmit={handleStartScan} className="space-y-4 py-2">
+          <form onSubmit={handleStartScan} className="space-y-5 text-sm">
             <div>
-              <label className="text-xs font-medium text-[#2B2523] block mb-1">Tender Title / Name</label>
-              <Input
+              <label className="font-bold text-[#2B2523] block mb-2 text-base">Tender Title</label>
+              <input
                 required
-                placeholder="e.g. Supply of Interactive Smart Classroom Panels"
+                placeholder="e.g. Supply of Smart Classroom Panels"
                 value={tenderTitle}
                 onChange={(e) => setTenderTitle(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E] bg-[#FAF8F5] focus:bg-white transition-colors"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Ministry / Dept</label>
-                <Input
+                <label className="font-bold text-[#2B2523] block mb-2 text-base">Ministry / Department</label>
+                <input
                   required
                   placeholder="e.g. Ministry of Education"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-4 py-3 text-base border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E] bg-[#FAF8F5] focus:bg-white transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#2B2523] block mb-1">Est. Tender Value</label>
-                <Input
+                <label className="font-bold text-[#2B2523] block mb-2 text-base">Estimated Value</label>
+                <input
                   required
                   placeholder="e.g. ₹ 6.50 Crore"
                   value={estimatedValue}
                   onChange={(e) => setEstimatedValue(e.target.value)}
+                  className="w-full px-4 py-3 text-base border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E] bg-[#FAF8F5] focus:bg-white transition-colors"
                 />
               </div>
             </div>
 
-            {/* Drag & Drop Simulation */}
-            <div className="border-2 border-dashed border-[#E5E0DA] bg-[#FAF8F5] rounded-xl p-6 text-center space-y-2 hover:border-[#B3432E] transition-colors cursor-pointer">
-              <UploadCloud className="w-8 h-8 text-[#B3432E] mx-auto" />
-              <p className="text-xs font-semibold text-[#2B2523]">
-                Click or drag tender PDF document here
-              </p>
-              <p className="text-[11px] text-[#786F66]">
-                Supports GeM RFP PDFs up to 50MB (automatic OCR & clause parsing)
-              </p>
+            {/* Upload Area */}
+            <div className="border-2 border-dashed border-[#E5E0DA] bg-[#FAF8F5] rounded-2xl p-8 text-center space-y-3 hover:border-[#B3432E]/40 transition-colors cursor-pointer">
+              <Upload className="w-8 h-8 text-[#B3432E] mx-auto" />
+              <p className="text-base font-bold text-[#2B2523]">Upload Tender RFP Document (PDF)</p>
+              <p className="text-sm text-[#786F66]">Drag & drop or click to browse • GeM specifications up to 50MB</p>
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={handleClose}>
+            <div className="flex justify-end space-x-4 pt-4 border-t border-[#E5E0DA]">
+              <button 
+                type="button" 
+                onClick={handleClose}
+                className="px-5 py-2.5 border border-[#E5E0DA] text-[#574E46] hover:bg-[#FAF8F5] rounded-xl text-sm font-semibold transition-colors"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" size="sm" className="bg-[#B3432E] hover:bg-[#9E3824] text-white">
-                Start AI Scan
-              </Button>
-            </DialogFooter>
+              </button>
+              <button 
+                type="submit"
+                className="px-6 py-2.5 bg-[#B3432E] hover:bg-[#9E3824] text-white rounded-xl text-sm font-extrabold flex items-center space-x-2 shadow-xs transition-colors"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Start AI Scan</span>
+              </button>
+            </div>
           </form>
         )}
 
         {step === 2 && (
-          <div className="py-8 space-y-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 text-[#B3432E] flex items-center justify-center mx-auto border border-rose-200">
-              <Loader2 className="w-6 h-6 animate-spin" />
+          <div className="py-12 space-y-6 text-center">
+            <Loader2 className="w-10 h-10 animate-spin text-[#B3432E] mx-auto" />
+            <div>
+              <p className="text-base font-bold text-[#2B2523]">Scanning RFP Document...</p>
+              <p className="text-sm text-[#786F66] mt-1">Extracting eligibility clauses and compliance conditions</p>
             </div>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold text-[#2B2523]">Processing Tender Document</h3>
-              <p className="text-xs text-[#786F66] font-mono">{currentActionText}</p>
-            </div>
-
-            <div className="px-6 space-y-1">
-              <Progress value={progress} className="h-2" />
-              <div className="flex justify-between text-[10px] text-[#786F66]">
-                <span>Uploading</span>
-                <span>Extracting Clauses</span>
-                <span>{progress}%</span>
+            {/* Progress bar */}
+            <div className="max-w-sm mx-auto">
+              <div className="w-full h-2.5 bg-[#E5E0DA] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#B3432E] rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
+              <p className="text-sm text-[#786F66] font-bold mt-2">{progress}% Complete</p>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="py-6 space-y-5 text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-200">
-              <CheckCircle2 className="w-6 h-6" />
+          <div className="py-10 space-y-5 text-center">
+            <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-2xl">✓</span>
             </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-[#2B2523]">Tender Scan Complete!</h3>
-              <p className="text-xs text-[#786F66]">
-                Successfully extracted eligibility criteria and created checklist.
-              </p>
+            <div>
+              <p className="text-xl font-extrabold text-[#2B2523]">Tender Scan Complete!</p>
+              <p className="text-sm text-[#786F66] mt-1">AI extracted 2 eligibility conditions from the RFP document</p>
             </div>
-
-            <DialogFooter className="pt-2 flex justify-center sm:justify-center">
-              <Button size="sm" onClick={handleClose} className="bg-[#B3432E] hover:bg-[#9E3824] text-white">
-                Open Checklist Workstation
-              </Button>
-            </DialogFooter>
+            <button 
+              onClick={handleClose}
+              className="px-6 py-2.5 bg-[#B3432E] hover:bg-[#9E3824] text-white rounded-xl text-sm font-extrabold shadow-xs transition-colors"
+            >
+              Open Checklist Workstation →
+            </button>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

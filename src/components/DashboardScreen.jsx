@@ -1,25 +1,7 @@
 import React from 'react';
-import { 
-  FileText, 
-  Users, 
-  Clock, 
-  AlertCircle, 
-  CheckCircle2, 
-  ChevronRight, 
-  Filter, 
-  PlusCircle, 
-  Sparkles,
-  ArrowUpRight,
-  ShieldCheck
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { ChevronRight, Filter } from 'lucide-react';
 
-export default function DashboardScreen({ tenders, onSelectTender, onStartNewScan, searchQuery }) {
-  // Filter tenders based on search query
+export default function DashboardScreen({ tenders, onSelectTender, searchQuery }) {
   const filteredTenders = tenders.filter(t => 
     t.tender_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -31,206 +13,149 @@ export default function DashboardScreen({ tenders, onSelectTender, onStartNewSca
   const underEvaluationCount = tenders.filter(t => t.status === 'Under Evaluation').length;
   const pendingReviewCount = tenders.filter(t => !t.checklist_approved).length;
 
-  const getStatusBadge = (status, approved) => {
+  const renderStatusLabel = (status, approved) => {
     if (approved || status === 'Checklist Approved') {
-      return <Badge variant="success" className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Checklist Approved</Badge>;
+      return (
+        <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md inline-block">
+          Checklist Approved
+        </span>
+      );
     }
     if (status === 'Under Evaluation') {
-      return <Badge variant="warning" className="flex items-center gap-1"><Clock className="w-3 h-3" /> Under Evaluation</Badge>;
+      return (
+        <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-md inline-block">
+          Under Evaluation
+        </span>
+      );
     }
-    return <Badge variant="secondary" className="flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Draft</Badge>;
+    return (
+      <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 bg-neutral-100 text-neutral-700 border border-neutral-300 rounded-md inline-block">
+        Draft
+      </span>
+    );
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="w-full px-8 py-8 space-y-8">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-[#786F66] uppercase tracking-wider mb-1">
-            <span>GeM Procurement Portal</span>
-            <span>•</span>
-            <span className="text-[#B3432E]">Officer Workstation</span>
+          <div className="text-xs font-extrabold text-[#786F66] uppercase tracking-wider mb-1">
+            GeM Procurement Portal • Officer Workstation
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#2B2523]">Procurement Overview & Active Tenders</h1>
-          <p className="text-sm text-[#786F66] mt-0.5">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#2B2523]">Procurement Overview</h1>
+          <p className="text-sm text-[#786F66] font-medium mt-1">
             Monitor tender eligibility compliance, review AI-extracted criteria, and approve checklists for evaluation.
           </p>
         </div>
-
-        <Button 
-          onClick={onStartNewScan}
-          className="bg-[#B3432E] hover:bg-[#9E3824] text-white shadow-sm flex items-center space-x-2 self-start md:self-auto"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>New Tender Scan</span>
-        </Button>
       </div>
 
-      {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <Card className="hover:border-[#B3432E]/30 transition-all cursor-default">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#786F66] uppercase tracking-wider">Active Tenders</span>
-              <div className="p-2 bg-[#F3EFE9] rounded-lg text-[#2B2523]">
-                <FileText className="w-4 h-4 text-[#B3432E]" />
-              </div>
-            </div>
-            <div className="mt-3 flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold tracking-tight text-[#2B2523]">{activeTendersCount}</span>
-              <span className="text-xs font-medium text-emerald-600 flex items-center">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +2 this week
-              </span>
-            </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-[11px] text-[#786F66] mb-1">
-                <span>Active Workloads</span>
-                <span>85% Capacity</span>
-              </div>
-              <Progress value={85} className="h-1.5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:border-[#B3432E]/30 transition-all cursor-default">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#786F66] uppercase tracking-wider">Bids Received</span>
-              <div className="p-2 bg-[#F3EFE9] rounded-lg text-[#2B2523]">
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-            </div>
-            <div className="mt-3 flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold tracking-tight text-[#2B2523]">{totalBidsCount}</span>
-              <span className="text-xs font-medium text-[#786F66]">bidders logged</span>
-            </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-[11px] text-[#786F66] mb-1">
-                <span>Verification Rate</span>
-                <span>92% verified</span>
-              </div>
-              <Progress value={92} className="h-1.5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-amber-500 hover:border-r hover:border-t hover:border-b hover:border-[#E5E0DA] transition-all cursor-default">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#786F66] uppercase tracking-wider">Under Evaluation</span>
-              <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
-                <Clock className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="mt-3 flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold tracking-tight text-[#2B2523]">{underEvaluationCount}</span>
-              <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-semibold">Action Required</span>
-            </div>
-            <p className="text-xs text-[#786F66] mt-3">Requires officer compliance verification</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-[#B3432E] hover:border-r hover:border-t hover:border-b hover:border-[#E5E0DA] transition-all cursor-default">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#786F66] uppercase tracking-wider">Pending Review</span>
-              <div className="p-2 bg-rose-50 rounded-lg text-[#B3432E]">
-                <AlertCircle className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="mt-3 flex items-baseline space-x-2">
-              <span className="text-3xl font-extrabold tracking-tight text-[#B3432E]">{pendingReviewCount}</span>
-              <span className="text-xs font-medium text-[#B3432E]">Checklists</span>
-            </div>
-            <p className="text-xs text-[#786F66] mt-3">Awaiting officer checklist approval</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Recent Tenders Table */}
-      <Card className="overflow-hidden border border-[#E5E0DA]">
-        <div className="p-5 border-b border-[#E5E0DA] bg-[#F8F5F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-bold text-[#2B2523] flex items-center space-x-2">
-              <span>Recent Tenders</span>
-              <Badge variant="secondary" className="text-xs">{filteredTenders.length} total</Badge>
-            </h2>
-            <p className="text-xs text-[#786F66]">Select any tender row to open its eligibility compliance checklist</p>
+      {/* SINGLE STAT STRIP (High Readability & Full Width) */}
+      <div className="border border-[#E5E0DA] bg-white rounded-2xl overflow-hidden shadow-xs">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[#E5E0DA]">
+          <div className="p-6 md:p-8 flex flex-col justify-center">
+            <span className="text-xs font-extrabold text-[#786F66] uppercase tracking-wider mb-1">Active Tenders</span>
+            <div className="text-4xl font-extrabold text-[#2B2523] tracking-tight">{activeTendersCount}</div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm" className="text-xs bg-white flex items-center space-x-1.5 border-[#E5E0DA]">
-              <Filter className="w-3.5 h-3.5 text-[#786F66]" />
-              <span>Filter Status</span>
-            </Button>
+          <div className="p-6 md:p-8 flex flex-col justify-center">
+            <span className="text-xs font-extrabold text-[#786F66] uppercase tracking-wider mb-1">Bids Received</span>
+            <div className="text-4xl font-extrabold text-[#2B2523] tracking-tight">{totalBidsCount}</div>
+          </div>
+
+          <div className="p-6 md:p-8 flex flex-col justify-center">
+            <span className="text-xs font-extrabold text-[#786F66] uppercase tracking-wider mb-1">Under Evaluation</span>
+            <div className="text-4xl font-extrabold text-amber-800 tracking-tight">{underEvaluationCount}</div>
+          </div>
+
+          <div className="p-6 md:p-8 flex flex-col justify-center">
+            <span className="text-xs font-extrabold text-[#786F66] uppercase tracking-wider mb-1">Pending Review</span>
+            <div className="text-4xl font-extrabold text-[#B3432E] tracking-tight">{pendingReviewCount}</div>
           </div>
         </div>
+      </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[140px]">Tender ID</TableHead>
-              <TableHead className="w-[320px]">Title</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead className="text-center">Bids</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTenders.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-[#786F66]">
-                  No tenders found matching "{searchQuery}".
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredTenders.map((tender) => (
-                <TableRow
-                  key={tender.tender_id}
-                  onClick={() => onSelectTender(tender.tender_id)}
-                  className="cursor-pointer hover:bg-[#FAF6F0] transition-colors group"
-                >
-                  <TableCell className="font-mono text-xs font-bold text-[#B3432E]">
-                    {tender.tender_id}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-[#2B2523] line-clamp-1 group-hover:text-[#B3432E] transition-colors">
-                      {tender.title}
-                    </div>
-                    <div className="text-[11px] text-[#786F66]">Est. Value: {tender.estimated_value}</div>
-                  </TableCell>
-                  <TableCell className="text-xs text-[#574E46]">
-                    {tender.department}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="font-semibold text-xs text-[#2B2523] px-2 py-0.5 bg-[#F3EFE9] rounded-md">
+      {/* STRIPPED-DOWN RECENT TENDERS TABLE (Full Width) */}
+      <div className="border border-[#E5E0DA] bg-white rounded-2xl overflow-hidden shadow-xs">
+        <div className="p-6 border-b border-[#E5E0DA] flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-[#2B2523]">Recent Tenders</h2>
+            <p className="text-xs text-[#786F66] font-medium">Select a tender row to review its compliance checklist</p>
+          </div>
+
+          <button className="border border-[#E5E0DA] hover:bg-[#F5F1EB] text-[#574E46] px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors">
+            <Filter className="w-4 h-4 text-[#786F66]" />
+            <span>Filter</span>
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#E5E0DA] text-xs font-extrabold uppercase tracking-wider text-[#574E46]">
+                <th className="py-4 px-6">Tender ID</th>
+                <th className="py-4 px-6">Title & Est. Value</th>
+                <th className="py-4 px-6">Department</th>
+                <th className="py-4 px-6 text-center">Bids</th>
+                <th className="py-4 px-6">Status</th>
+                <th className="py-4 px-6">Last Updated</th>
+                <th className="py-4 px-6 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E5E0DA] text-sm">
+              {filteredTenders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-[#786F66] text-sm">
+                    No tenders found matching "{searchQuery}".
+                  </td>
+                </tr>
+              ) : (
+                filteredTenders.map((tender) => (
+                  <tr
+                    key={tender.tender_id}
+                    onClick={() => onSelectTender(tender.tender_id)}
+                    className="cursor-pointer hover:bg-[#FAF8F5] transition-colors group"
+                  >
+                    <td className="py-4 px-6 font-mono font-extrabold text-sm text-[#B3432E]">
+                      {tender.tender_id}
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-[#2B2523] text-base group-hover:text-[#B3432E] transition-colors">
+                        {tender.title}
+                      </div>
+                      <div className="text-xs text-[#786F66] font-medium mt-0.5">Est. Value: <strong className="text-[#2B2523]">{tender.estimated_value}</strong></div>
+                    </td>
+
+                    <td className="py-4 px-6 text-[#574E46] font-semibold text-sm">
+                      {tender.department}
+                    </td>
+
+                    <td className="py-4 px-6 text-center font-extrabold text-base text-[#2B2523]">
                       {tender.bids_count}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(tender.status, tender.checklist_approved)}
-                  </TableCell>
-                  <TableCell className="text-xs text-[#786F66]">
-                    {tender.last_updated}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="text-xs text-[#B3432E] hover:text-[#9E3824] hover:bg-rose-50 group-hover:translate-x-0.5 transition-transform"
-                    >
-                      <span>Review</span>
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                    </td>
+
+                    <td className="py-4 px-6">
+                      {renderStatusLabel(tender.status, tender.checklist_approved)}
+                    </td>
+
+                    <td className="py-4 px-6 text-xs text-[#786F66] font-medium">
+                      {tender.last_updated}
+                    </td>
+
+                    <td className="py-4 px-6 text-right">
+                      <span className="text-[#B3432E] font-bold text-sm flex items-center justify-end space-x-1 hover:underline">
+                        <span>Review</span>
+                        <ChevronRight className="w-4 h-4 ml-0.5" />
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
