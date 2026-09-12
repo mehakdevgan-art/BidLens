@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  CheckSquare, 
-  BarChart3, 
-  BookOpen, 
-  Settings, 
-  ShieldCheck, 
-  Activity, 
-  PlusCircle, 
+import {
+  LayoutDashboard,
+  FileText,
+  CheckSquare,
+  BarChart3,
+  BookOpen,
+  Settings,
+  ShieldCheck,
+  Activity,
+  PlusCircle,
   Sparkles,
   Award
 } from 'lucide-react';
@@ -22,7 +22,12 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
     { id: 'tenders', label: 'Tenders', icon: FileText, view: 'tenders' },
     { id: 'compliance', label: 'Compliance', icon: CheckSquare, badge: pendingReviewCount, view: 'tender_overview' },
-    { id: 'reports', label: 'Reports', icon: BarChart3, view: 'reports' },
+    {
+      id: 'Compliance Matrix',
+      label: 'Bid Matrix',
+      icon: BarChart3,
+      view: 'compliance'
+    },
     { id: 'library', label: 'Clause Library', icon: BookOpen, view: 'library' },
     { id: 'settings', label: 'Settings', icon: Settings, view: 'settings' },
   ];
@@ -45,7 +50,7 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
         </div>
 
         {/* Primary Action Button */}
-        <Button 
+        <Button
           onClick={onStartNewScan}
           className="w-full bg-[#B3432E] hover:bg-[#9E3824] text-white flex items-center justify-center space-x-2 py-2.5 rounded-xl font-medium text-sm shadow-sm transition-all hover:shadow"
         >
@@ -63,11 +68,10 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
               <button
                 key={item.id}
                 onClick={() => setCurrentView(item.view)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-[#B3432E] text-white shadow-sm font-semibold'
-                    : 'text-[#574E46] hover:bg-[#EAE4DC] hover:text-[#2B2523]'
-                }`}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                  ? 'bg-[#B3432E] text-white shadow-sm font-semibold'
+                  : 'text-[#574E46] hover:bg-[#EAE4DC] hover:text-[#2B2523]'
+                  }`}
               >
                 <div className="flex items-center space-x-3">
                   <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#786F66]'}`} />
@@ -75,11 +79,10 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
                 </div>
                 {item.badge !== undefined && (
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-rose-100 text-[#B3432E]'
-                    }`}
+                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-rose-100 text-[#B3432E]'
+                      }`}
                   >
                     {item.badge}
                   </span>
