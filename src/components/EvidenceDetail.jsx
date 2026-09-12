@@ -7,6 +7,19 @@ const STATUS_META = {
     NEEDS_REVIEW: { label: "Review Required", pill: "bg-amber-50", text: "text-amber-700" },
 };
 
+// Maps a button action to the status the evidence should move to
+const DECISION_STATUS = {
+    ACCEPT_EVIDENCE: "COMPLIANT",
+    REJECT_EVIDENCE: "NON_COMPLIANT",
+    REVIEW_EVIDENCE: "NEEDS_REVIEW",
+};
+
+const DECISION_LABEL = {
+    ACCEPT_EVIDENCE: "Accepted",
+    REJECT_EVIDENCE: "Rejected",
+    REVIEW_EVIDENCE: "Marked for review",
+};
+
 function InfoBlock({ label, corner, children }) {
     return (
         <div className="rounded-xl bg-gray-50 p-4">
@@ -55,9 +68,88 @@ function DocumentViewer({ doc }) {
     );
 }
 
-function EvidenceDetail({ detail, onBack }) {
+/**
+ * Officer decision panel: Accept / Reject / Review buttons for a single
+ * piece of evidence. Calls `onDecision(action, meta)` so the parent can
+ * pipe it into the audit log (see auditLog.js / AuditTrailScreen.jsx).
+ */
+function OfficerDecisionPanel({ detail, currentStatus, onDecide }) {
+    const [remarks, setRemarks] = useState("");
+    const [lastAction, setLastAction] = useState(null);
+
+    const handleClick = (action) => {
+        onDecide(action, remarks.trim());
+        setLastAction(action);
+    };
+
+    return (
+        <div className="rounded-xl bg-gray-50 p-4">
+            <p className="mb-2 text-sm font-semibold text-gray-900">Officer Decision</p>
+
+            <textarea
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Add a remark (optional) — included in the audit trail"
+                rows={2}
+                className="mb-3 w-full rounded-lg border border-gray-200 bg-white p-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+
+            <div className="flex flex-wrap gap-2">
+                <button
+                    type="button"
+                    onClick={() => handleClick("ACCEPT_EVIDENCE")}
+                    disabled={currentStatus === "COMPLIANT"}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Accept
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleClick("REJECT_EVIDENCE")}
+                    disabled={currentStatus === "NON_COMPLIANT"}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Reject
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleClick("REVIEW_EVIDENCE")}
+                    disabled={currentStatus === "NEEDS_REVIEW"}
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Mark for Review
+                </button>
+            </div>
+
+            {lastAction && (
+                <p className="mt-3 text-xs text-gray-500">
+                    {DECISION_LABEL[lastAction]} · {detail.requirementName} for {detail.bidderName}, just now.
+                </p>
+            )}
+        </div>
+    );
+}
+
+function EvidenceDetail({ detail, onBack, onDecision = () => {} }) {
     const [activeDocTab, setActiveDocTab] = useState("clause"); // "clause" | "document"
-    const meta = STATUS_META[detail.status] ?? STATUS_META.NEEDS_REVIEW;
+    const [currentStatus, setCurrentStatus] = useState(detail.status);
+    const meta = STATUS_META[currentStatus] ?? STATUS_META.NEEDS_REVIEW;
+
+    const handleDecide = (action, remarks) => {
+        const nextStatus = DECISION_STATUS[action];
+        setCurrentStatus(nextStatus);
+
+        const remarkSuffix = remarks ? ` — remark: "${remarks}"` : "";
+        const description = `${DECISION_LABEL[action]} evidence for "${detail.requirementName}" (${detail.bidderName}) on tender ${detail.tenderId}${remarkSuffix}`;
+
+        onDecision(action, {
+            description,
+            tenderId: detail.tenderId,
+            requirementName: detail.requirementName,
+            bidderName: detail.bidderName,
+            remarks,
+        });
+    };
 
     return (
         <div className="min-h-screen bg-[#fcf8f6] p-6">
@@ -117,6 +209,12 @@ function EvidenceDetail({ detail, onBack }) {
                     <InfoBlock label="System Finding">
                         <p className="text-sm text-gray-700">{detail.systemFinding}</p>
                     </InfoBlock>
+
+                    <OfficerDecisionPanel
+                        detail={detail}
+                        currentStatus={currentStatus}
+                        onDecide={handleDecide}
+                    />
                 </div>
 
                 {/* RIGHT: DOCUMENT VIEWER */}
@@ -187,7 +285,13 @@ export const demoEvidenceDetail = {
 };
 
 export default function EvidenceDetailDemo() {
-    return <EvidenceDetail detail={demoEvidenceDetail} onBack={() => alert("Back to matrix")} />;
+    return (
+        <EvidenceDetail
+            detail={demoEvidenceDetail}
+            onBack={() => alert("Back to matrix")}
+            onDecision={(action, meta) => console.log("Officer decision:", action, meta)}
+        />
+    );
 }
 
 export { EvidenceDetail };
