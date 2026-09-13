@@ -71,7 +71,8 @@ function DocumentViewer({ doc }) {
 /**
  * Officer decision panel: Accept / Reject / Review buttons for a single
  * piece of evidence. Calls `onDecision(action, meta)` so the parent can
- * pipe it into the audit log (see auditLog.js / AuditTrailScreen.jsx).
+ * pipe it into the audit log (see auditLog.js / AuditTrailScreen.jsx) and,
+ * ultimately, PATCH the relevant document's status on the backend.
  */
 function OfficerDecisionPanel({ detail, currentStatus, onDecide }) {
     const [remarks, setRemarks] = useState("");
@@ -147,6 +148,11 @@ function EvidenceDetail({ detail, onBack, onDecision = () => {} }) {
             tenderId: detail.tenderId,
             requirementName: detail.requirementName,
             bidderName: detail.bidderName,
+            // New: identifies exactly which backend document/category this
+            // decision applies to, so the parent can PATCH it correctly.
+            category: detail.category ?? null,
+            documentId: detail.documentId ?? null,
+            nextStatus,
             remarks,
         });
     };
@@ -254,33 +260,34 @@ function EvidenceDetail({ detail, onBack, onDecision = () => {} }) {
 // --- Demo/fake data matching the reference screenshot ---
 export const demoEvidenceDetail = {
     tenderId: "GEM/2024/001",
-    requirementName: "Local Content (>= 50%)",
+    requirementName: "GST Registration",
     status: "NON_COMPLIANT",
     bidderName: "Bharat Supplies Ltd",
+    category: "GST",
+    documentId: "DOC_001",
     clauseRef: "8.2",
     clausePage: 14,
-    requirementText: "Minimum local content shall be 50% as per Make in India policy.",
-    extractedValue: "43%",
-    extractedSourceLabel: "Local Content Declaration",
-    extractedSourcePage: 6,
-    appliedRule: "43 < 50 → Not Satisfied",
-    systemFinding: "The declared local content (43%) is below the required threshold of 50%.",
+    requirementText: "Bidders must submit a valid GST registration certificate.",
+    extractedValue: "Not found",
+    extractedSourceLabel: "bidder.pdf",
+    extractedSourcePage: 1,
+    appliedRule: 'Required category "GST" not found → Not Satisfied',
+    systemFinding: "No document was classified as GST registration for this bidder.",
     tenderClause: {
         page: 14,
         totalPages: 32,
-        heading: "8.2  Local Content",
-        body: "Bidders must ensure a minimum local content of ",
-        highlight: "50%",
-        bodyEnd:
-            " in the offered goods, in line with the Public Procurement (Preference to Make in India) Order.",
+        heading: "8.2  Statutory Registrations",
+        body: "Bidders must submit a valid ",
+        highlight: "GST registration certificate",
+        bodyEnd: " as part of the eligibility documents.",
     },
     bidderDocument: {
-        page: 6,
+        page: 1,
         totalPages: 12,
-        heading: "Local Content Declaration",
-        body: "The bidder declares a local content of ",
-        highlight: "43%",
-        bodyEnd: " for the offered goods, calculated in accordance with the prescribed formula.",
+        heading: "bidder.pdf",
+        body: "No document was classified into this category for this bidder.",
+        highlight: "",
+        bodyEnd: "",
     },
 };
 

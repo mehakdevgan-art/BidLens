@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import complianceMock from "../data/complianceMock.js";
 import { EvidenceDetail } from "../components/EvidenceDetail.jsx";
-
+import { createAuditEntry } from '@/utils/auditLog';
 
 /**
- * Expected complianceMock shape — an array of tenders, each self-contained:
+ * Expected complianceMock shape — matches the new backend contract:
  *
  * {
  *   tenders: [
@@ -13,16 +13,41 @@ import { EvidenceDetail } from "../components/EvidenceDetail.jsx";
  *       status: "Active",
  *       title: "...",
  *       department: "...",
- *       documentUrl: null, // set once the real RFP PDF is uploaded
- *       bidders: [{ bidder_id, name }, ...],
- *       requirements: [{ requirement_id, name, category }, ...],
- *       evidence: [{ bidder_id, requirement_id, value, unit, document, page, evidence_text }, ...],
- *       results: [{ bidder_id, requirement_id, status, required, found, reason }, ...],
+ *       documentUrl: null,
+ *       requirements: [
+ *         { requirement_id, name, category, description, source: { clause, page } },
+ *         ...
+ *       ],
+ *       bidders: [
+ *         {
+ *           bidder_id: "B01",
+ *           bidder_name: "ABC Safety Solutions Pvt. Ltd.",
+ *           source_file: "bidder.pdf",
+ *           documents: [
+ *             {
+ *               document_id: "DOC_001",
+ *               category: "GST",
+ *               page_start: 1,
+ *               page_end: 3,
+ *               pages: [1, 2, 3],
+ *               confidence: 0.97,
+ *               status: "COMPLIANT",   // <-- backend-computed verdict, once available
+ *               reason: null,          // <-- optional backend explanation
+ *             },
+ *             ...
+ *           ],
+ *         },
+ *         ...
+ *       ],
  *     },
  *     ...
  *   ],
  * }
+ *
+ * `requirement.category` is the join key against `document.category` for a given bidder.
  */
+
+
 
 const STATUS_META = {
     COMPLIANT: {
@@ -67,8 +92,28 @@ const fakeTenderDocumentPages = [
     },
 ];
 
+// TEMPORARY fallback until the backend always sends `document.status`.
+// Remove this once every document object is guaranteed to include a verdict.
+const CONFIDENCE_THRESHOLDS = { compliant: 0.9, review: 0.7 };
+
+function deriveStatusFromConfidence(confidence) {
+    if (confidence >= CONFIDENCE_THRESHOLDS.compliant) return "COMPLIANT";
+    if (confidence >= CONFIDENCE_THRESHOLDS.review) return "NEEDS_REVIEW";
+    return "NON_COMPLIANT";
+}
+
+function getDocumentStatus(document) {
+    if (!document) return "NON_COMPLIANT"; // required category not found for this bidder
+    if (document.status) return document.status; // trust backend once it's sending this
+    return deriveStatusFromConfidence(document.confidence ?? 0);
+}
+
 function statusMeta(status) {
     return STATUS_META[status] ?? STATUS_META.NEEDS_REVIEW;
+}
+
+function overrideKey(tenderId, bidderId, category) {
+    return `${tenderId}_${bidderId}_${category}`;
 }
 
 function StatusPill({ status, onClick }) {
@@ -85,14 +130,7 @@ function StatusPill({ status, onClick }) {
     );
 }
 
-function overallStatusForBidder(results, bidderId) {
-    const rows = results.filter((r) => r.bidder_id === bidderId);
-    if (rows.some((r) => r.status === "NON_COMPLIANT")) return "FAIL";
-    if (rows.some((r) => r.status === "NEEDS_REVIEW")) return "REVIEW";
-    return "PASS";
-}
-
-function Compliance() {
+function Compliance({ onLogActivity = () => { } }) {
     const tenders = complianceMock.tenders ?? [];
 
     const [selectedTenderId, setSelectedTenderId] = useState(tenders[0]?.id ?? null);
@@ -100,92 +138,165 @@ function Compliance() {
     const [showTenderDoc, setShowTenderDoc] = useState(false);
     const [docPageIndex, setDocPageIndex] = useState(0);
 
+    // Officer decisions, keyed by `${tenderId}_${bidderId}_${category}` -> { status, remarks }.
+    // These win over the backend/confidence-derived status until a refetch/PATCH replaces them.
+    const [statusOverrides, setStatusOverrides] = useState({});
+
     const tender = tenders.find((t) => t.id === selectedTenderId) ?? tenders[0];
 
-    const { bidders = [], requirements = [], evidence = [], results = [] } =
-        tender ?? {};
+    const { bidders = [], requirements = [] } = tender ?? {};
 
-    const resultsByKey = useMemo(() => {
+    // documentsByKey: `${bidder_id}_${category}` -> document
+    // (assumes at most one document per category per bidder; first match wins otherwise)
+    const documentsByKey = useMemo(() => {
         const map = new Map();
-        results.forEach((r) => map.set(`${r.bidder_id}_${r.requirement_id}`, r));
+        bidders.forEach((b) => {
+            (b.documents ?? []).forEach((doc) => {
+                const key = `${b.bidder_id}_${doc.category}`;
+                if (!map.has(key)) map.set(key, doc);
+            });
+        });
         return map;
-    }, [results]);
+    }, [bidders]);
 
-    const evidenceByKey = useMemo(() => {
+    const bidderById = useMemo(() => {
         const map = new Map();
-        evidence.forEach((e) => map.set(`${e.bidder_id}_${e.requirement_id}`, e));
+        bidders.forEach((b) => map.set(b.bidder_id, b));
         return map;
-    }, [evidence]);
+    }, [bidders]);
 
-    const bidderName = (bidderId) =>
-        bidders.find((b) => b.bidder_id === bidderId)?.name ?? bidderId;
+    // Resolves the status a cell should actually show: officer override first,
+    // then backend/confidence-derived status.
+    function getEffectiveStatus(bidderId, category, document) {
+        const key = overrideKey(tender.id, bidderId, category);
+        return statusOverrides[key]?.status ?? getDocumentStatus(document);
+    }
+
+    function overallStatusForBidder(bidderId) {
+        const statuses = requirements.map((req) =>
+            getEffectiveStatus(bidderId, req.category, documentsByKey.get(`${bidderId}_${req.category}`))
+        );
+        if (statuses.some((s) => s === "NON_COMPLIANT")) return "FAIL";
+        if (statuses.some((s) => s === "NEEDS_REVIEW")) return "REVIEW";
+        return "PASS";
+    }
 
     const selectedDetail = useMemo(() => {
-        if (!selectedCell) return null;
-        const key = `${selectedCell.bidder_id}_${selectedCell.requirement_id}`;
-        return {
-            requirement: requirements.find(
-                (r) => r.requirement_id === selectedCell.requirement_id
-            ),
-            result: resultsByKey.get(key),
-            evidence: evidenceByKey.get(key),
-        };
-    }, [selectedCell, requirements, resultsByKey, evidenceByKey]);
+        if (!selectedCell || !tender) return null;
+        const requirement = requirements.find(
+            (r) => r.requirement_id === selectedCell.requirement_id
+        );
+        if (!requirement) return null;
+        const bidder = bidderById.get(selectedCell.bidder_id);
+        const document = documentsByKey.get(
+            `${selectedCell.bidder_id}_${requirement.category}`
+        );
+        const status = getEffectiveStatus(selectedCell.bidder_id, requirement.category, document);
+        const override = statusOverrides[
+            overrideKey(tender.id, selectedCell.bidder_id, requirement.category)
+        ];
+        return { requirement, bidder, document, status, override };
+    }, [selectedCell, requirements, bidderById, documentsByKey, statusOverrides, tender]);
 
-    // Maps real result/evidence/requirement data into the EvidenceDetail
-    // shape. tenderClause/bidderDocument body text is fake placeholder
-    // content until the backend renders real clause + document pages.
+    // Maps requirement/bidder/document data into the EvidenceDetail shape.
+    // tenderClause/bidderDocument body text is fake placeholder content
+    // until the backend renders real clause + document pages.
     const evidenceDetailData = useMemo(() => {
         if (!selectedDetail?.requirement || !selectedCell || !tender) return null;
-        const { requirement, result, evidence: ev } = selectedDetail;
+        const { requirement, bidder, document, status, override } = selectedDetail;
 
-        const appliedRule = !result
-            ? "—"
-            : result.status === "COMPLIANT"
-                ? `${result.found} satisfies ${result.required} → Satisfied`
-                : result.status === "NEEDS_REVIEW"
-                    ? `${result.found} → Needs Manual Review`
-                    : `${result.found} fails ${result.required} → Not Satisfied`;
+        const pageRange = document
+            ? document.page_start === document.page_end
+                ? `Page ${document.page_start}`
+                : `Pages ${document.page_start}–${document.page_end}`
+            : null;
+
+        const baseRule = !document
+            ? `Required category "${requirement.category}" not found → Not Satisfied`
+            : status === "COMPLIANT"
+                ? `${document.category} classified with ${(document.confidence * 100).toFixed(0)}% confidence → Satisfied`
+                : status === "NEEDS_REVIEW"
+                    ? `${document.category} classified with ${(document.confidence * 100).toFixed(0)}% confidence → Needs Manual Review`
+                    : `${document.category} does not satisfy requirement → Not Satisfied`;
+
+        const appliedRule = override
+            ? `Officer override → ${statusMeta(status).label}`
+            : baseRule;
+
+        const baseFinding = document?.reason ??
+            (document
+                ? `Classified as "${document.category}" (document ${document.document_id}) with ${(document.confidence * 100).toFixed(0)}% confidence.`
+                : "No matching document found for this requirement.");
+
+        const systemFinding = override?.remarks
+            ? `${baseFinding} Officer remark: "${override.remarks}"`
+            : baseFinding;
 
         return {
             tenderId: tender.id,
-            requirementName: `${requirement.name}${result?.required ? ` (${result.required})` : ""}`,
-            status: result?.status,
-            bidderName: bidderName(selectedCell.bidder_id),
+            requirementName: requirement.name,
+            status,
+            bidderName: bidder?.bidder_name ?? selectedCell.bidder_id,
+            category: requirement.category,
+            documentId: document?.document_id ?? null,
             clauseRef: requirement.source?.clause ?? "—",
-            clausePage: requirement.source?.page ?? ev?.page ?? "—",
+            clausePage: requirement.source?.page ?? document?.page_start ?? "—",
             requirementText:
-                requirement.description ??
-                `Requirement: ${requirement.name}${result?.required ? ` — must be ${result.required}.` : "."}`,
-            extractedValue: result?.found ?? `${ev?.value ?? "—"}${ev?.unit ? ` ${ev.unit}` : ""}`,
-            extractedSourceLabel: ev?.document ?? "Evidence document",
-            extractedSourcePage: ev?.page ?? "—",
+                requirement.description ?? `Requirement: ${requirement.name}.`,
+            extractedValue: pageRange ?? "Not found",
+            extractedSourceLabel: bidder?.source_file ?? document?.document_id ?? "Evidence document",
+            extractedSourcePage: document?.page_start ?? "—",
             appliedRule,
-            systemFinding: result?.reason ?? ev?.evidence_text ?? "No finding recorded.",
+            systemFinding,
             tenderClause: {
-                page: requirement.source?.page ?? ev?.page ?? 1,
+                page: requirement.source?.page ?? document?.page_start ?? 1,
                 totalPages: 32,
                 heading: requirement.name,
                 body: "Full clause text will be rendered here once the backend provides it. Requirement: ",
-                highlight: result?.required ?? "",
+                highlight: requirement.category ?? "",
                 bodyEnd: ".",
             },
             bidderDocument: {
-                page: ev?.page ?? 1,
+                page: document?.page_start ?? 1,
                 totalPages: 12,
-                heading: ev?.document ?? "Bidder document",
-                body: ev?.evidence_text ?? "Full extracted document text will be rendered here.",
+                heading: bidder?.source_file ?? "Bidder document",
+                body: document
+                    ? `Full extracted text for "${document.category}" (${pageRange}) will be rendered here.`
+                    : "No document was classified into this category for this bidder.",
                 highlight: "",
                 bodyEnd: "",
             },
         };
     }, [selectedDetail, selectedCell, tender]);
 
+    // Officer decision from EvidenceDetail: records an override so the matrix
+    // reflects it immediately. Swap/extend this to also fire a backend PATCH.
+    const handleDecision = (action, meta) => {
+        if (!selectedCell || !tender || !meta.category) return;
+        const key = overrideKey(tender.id, selectedCell.bidder_id, meta.category);
+        setStatusOverrides((prev) => ({
+            ...prev,
+            [key]: { status: meta.nextStatus, remarks: meta.remarks },
+        }));
+
+        onLogActivity(
+            createAuditEntry(action, meta.description, {
+                tenderId: meta.tenderId,
+                requirementName: meta.requirementName,
+                bidderName: meta.bidderName,
+                category: meta.category,
+                documentId: meta.documentId,
+                remarks: meta.remarks,
+            })
+        );
+    };
+
     if (evidenceDetailData) {
         return (
             <EvidenceDetail
                 detail={evidenceDetailData}
                 onBack={() => setSelectedCell(null)}
+                onDecision={handleDecision}
             />
         );
     }
@@ -301,7 +412,7 @@ function Compliance() {
                                             key={b.bidder_id}
                                             className="px-5 py-4 text-left text-xs font-semibold uppercase text-gray-500"
                                         >
-                                            {b.name}
+                                            {b.bidder_name}
                                         </th>
                                     ))}
                                 </tr>
@@ -318,31 +429,26 @@ function Compliance() {
                                         </td>
 
                                         {bidders.map((b) => {
-                                            const result = resultsByKey.get(
-                                                `${b.bidder_id}_${req.requirement_id}`
+                                            const document = documentsByKey.get(
+                                                `${b.bidder_id}_${req.category}`
                                             );
+                                            const status = getEffectiveStatus(b.bidder_id, req.category, document);
                                             return (
                                                 <td key={b.bidder_id} className="px-5 py-4">
-                                                    {result ? (
-                                                        <StatusPill
-                                                            status={result.status}
-                                                            onClick={() =>
-                                                                setSelectedCell({
-                                                                    requirement_id: req.requirement_id,
-                                                                    bidder_id: b.bidder_id,
-                                                                })
-                                                            }
-                                                        />
-                                                    ) : (
-                                                        <span className="text-xs text-gray-300">—</span>
-                                                    )}
+                                                    <StatusPill
+                                                        status={status}
+                                                        onClick={() =>
+                                                            setSelectedCell({
+                                                                requirement_id: req.requirement_id,
+                                                                bidder_id: b.bidder_id,
+                                                            })
+                                                        }
+                                                    />
                                                 </td>
                                             );
                                         })}
                                     </tr>
                                 ))}
-
-                                
                             </tbody>
                         </table>
                     </div>
