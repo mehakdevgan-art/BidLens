@@ -12,13 +12,13 @@ export default function TenderDocModal({ open, onOpenChange, tender }) {
         <div className="p-6 border-b border-[#E5E0DA] bg-[#FAF8F5] flex items-center justify-between">
           <div>
             <div className="text-xs font-extrabold text-[#B3432E] uppercase tracking-wider">
-              GeM Tender Document Reader
+              Tender document reader
             </div>
             <h2 className="text-lg font-extrabold text-[#2B2523] mt-1">
-              {tender ? tender.title : doc.title}
+              {tender?.source_document || tender?.title || doc.title}
             </h2>
             <p className="text-xs text-[#786F66] font-mono mt-0.5">
-              Ref: {tender?.tender_id || 'GEM/2024/001'} • Published 2026-08-28
+              Uploaded source document
             </p>
           </div>
 

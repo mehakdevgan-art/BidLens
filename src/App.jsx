@@ -6,6 +6,7 @@ import DashboardScreen from '@/components/DashboardScreen';
 import TendersListScreen from '@/components/TendersListScreen';
 import TenderOverviewScreen from '@/components/TenderOverviewScreen';
 import NewTenderScanModal from '@/components/NewTenderScanModal';
+import BidReadinessScreen from '@/components/BidReadinessScreen';
 
 export default function App() {
   // Top-Level Lifted State for persistence across views
@@ -145,6 +146,10 @@ export default function App() {
             />
           )}
 
+          {currentView === 'bid_readiness' && (
+            <BidReadinessScreen tender={activeTender} />
+          )}
+
           {currentView === 'audit_trail' && (
             <div className="p-8 max-w-7xl mx-auto space-y-4">
               <h1 className="text-xl font-bold text-[#2B2523]">Audit Trail Log</h1>
@@ -154,14 +159,6 @@ export default function App() {
             </div>
           )}
 
-          {currentView === 'settings' && (
-            <div className="p-8 max-w-7xl mx-auto space-y-4">
-              <h1 className="text-xl font-bold text-[#2B2523]">Workstation Settings</h1>
-              <div className="border border-[#E5E0DA] bg-white rounded-xl p-8 text-center text-xs text-[#786F66]">
-                GeM Compliance Engine & Notification Settings. Select Dashboard or Tenders to navigate back.
-              </div>
-            </div>
-          )}
         </main>
       </div>
 

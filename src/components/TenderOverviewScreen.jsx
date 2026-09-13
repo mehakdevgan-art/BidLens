@@ -50,8 +50,7 @@ export default function TenderOverviewScreen({
 
   return (
     <div className="w-full px-8 py-8 space-y-8">
-      {/* Top Breadcrumb Navigation */}
-      <div className="flex items-center justify-between text-sm text-[#786F66]">
+      <div className="flex items-center text-sm text-[#786F66]">
         <div className="flex items-center space-x-2 font-semibold">
           <button 
             onClick={onBackToDashboard}
@@ -60,37 +59,19 @@ export default function TenderOverviewScreen({
             <ChevronLeft className="w-4 h-4" />
             <span>Tenders</span>
           </button>
-          <span>/</span>
-          <span className="font-mono font-extrabold text-[#B3432E]">{tender.tender_id}</span>
-          <span>/</span>
-          <span className="text-[#2B2523] font-extrabold">Compliance Checklist</span>
+          <span>/</span><span className="text-[#2B2523] font-extrabold">Extracted requirements</span>
         </div>
-
-        <span className="font-mono font-bold text-[#786F66]">GeM Ref: {tender.tender_id}</span>
       </div>
 
       {/* Tender Header & Plain Label/Value Rows Stack */}
       <div className="border border-[#E5E0DA] bg-white rounded-2xl p-8 space-y-6 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#E5E0DA]">
           <div className="space-y-2">
-            <div className="flex items-center space-x-3">
-              <span className="font-mono font-extrabold text-sm text-[#B3432E]">{tender.tender_id}</span>
-              {renderStatusLabel()}
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#2B2523]">{tender.title}</h1>
+            <div className="flex items-center space-x-3">{renderStatusLabel()}</div>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#2B2523]">Tender requirements</h1>
           </div>
 
-          {/* Action Header: EXACTLY ONE SOLID PRIMARY BUTTON */}
-          <div className="flex items-center space-x-4 shrink-0">
-            {/* Secondary Action: Plain Outlined Button */}
-            <button
-              onClick={() => setDocModalOpen(true)}
-              className="px-5 py-2.5 border border-[#E5E0DA] hover:bg-[#FAF8F5] text-[#2B2523] rounded-xl text-sm font-semibold transition-colors"
-            >
-              View Tender Document
-            </button>
-
-            {/* SINGLE SOLID PRIMARY BUTTON FOR SCREEN */}
+          <div className="flex items-center shrink-0">
             <button
               disabled={reqCount === 0}
               onClick={handleApproveClick}
@@ -115,51 +96,21 @@ export default function TenderOverviewScreen({
           </div>
         </div>
 
-        {/* STACKED LIST: Plain Label/Value Rows (High Readability) */}
-        <div className="divide-y divide-[#E5E0DA] text-sm md:text-base">
-          <div className="py-3.5 flex justify-between items-center">
-            <span className="text-[#786F66] font-medium">Buyer Department</span>
-            <span className="font-bold text-[#2B2523]">{tender.department}</span>
-          </div>
-
-          <div className="py-3.5 flex justify-between items-center">
-            <span className="text-[#786F66] font-medium">Published Date</span>
-            <span className="font-semibold text-[#2B2523]">{tender.published_date}</span>
-          </div>
-
-          <div className="py-3.5 flex justify-between items-center">
-            <span className="text-[#786F66] font-medium">Submission Deadline</span>
-            <span className="font-extrabold text-amber-900">{tender.deadline}</span>
-          </div>
-
-          <div className="py-3.5 flex justify-between items-center">
-            <span className="text-[#786F66] font-medium">Estimated Value</span>
-            <span className="font-extrabold text-[#2B2523] text-lg">{tender.estimated_value}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* CLEAN STEP TRACKER STRIP */}
-      <div className="border border-[#E5E0DA] bg-white rounded-2xl p-5 text-sm font-semibold text-[#574E46] shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div><strong className="text-[#2B2523] font-bold">Step 1:</strong> Document Upload — Completed</div>
-          <span className="hidden sm:inline text-[#E5E0DA]">│</span>
-          <div><strong className="text-[#2B2523] font-bold">Step 2:</strong> AI Clause Extraction — Completed ({reqCount} Rules)</div>
-          <span className="hidden sm:inline text-[#E5E0DA]">│</span>
-          <div>
-            <strong className="text-[#2B2523] font-bold">Step 3:</strong> Officer Approval —{' '}
-            <span className={isApproved ? 'text-emerald-800 font-extrabold' : 'text-[#B3432E] font-extrabold'}>
-              {isApproved ? 'Approved' : 'Pending Review'}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* MAIN CHECKLIST WORKSTATION SECTION */}
       <div className="space-y-5 pt-2">
         <div className="border-b border-[#E5E0DA] pb-3 flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-[#2B2523] uppercase tracking-wider">AI-Extracted Eligibility Conditions Checklist</h2>
-          <span className="text-xs text-[#786F66] font-bold">AI Extraction Confidence: 98.4%</span>
+          <div>
+            <h2 className="text-base font-extrabold text-[#2B2523] uppercase tracking-wider">Extracted tender requirements</h2>
+            <button
+              onClick={() => setDocModalOpen(true)}
+              className="mt-1 text-xs font-bold text-[#B3432E] hover:underline"
+            >
+              View source document
+            </button>
+          </div>
+          <span className="text-xs text-[#786F66] font-bold">{reqCount} requirements ready for review</span>
         </div>
 
         <ChecklistTable

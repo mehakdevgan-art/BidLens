@@ -115,8 +115,7 @@ export default function ChecklistTable({
   };
 
   const formatCondition = (req) => {
-    const valDisplay = req.unit ? `${req.required_value} ${req.unit}` : req.required_value;
-    return `${req.operator} ${valDisplay}`;
+    return req.category;
   };
 
   return (
@@ -152,7 +151,7 @@ export default function ChecklistTable({
             <tr className="border-b border-[#E5E0DA] text-xs font-extrabold uppercase tracking-wider text-[#574E46]">
               <th className="py-4 px-6 w-[50px] text-center">#</th>
               <th className="py-4 px-6">Requirement Name</th>
-              <th className="py-4 px-6">Condition / Expected Value</th>
+              <th className="py-4 px-6">Extraction category</th>
               <th className="py-4 px-6">Source Reference</th>
               <th className="py-4 px-6">Category</th>
               <th className="py-4 px-6 text-right">Actions</th>
@@ -176,7 +175,7 @@ export default function ChecklistTable({
                     {req.name} <span className="text-xs font-mono font-semibold text-[#786F66]">({req.requirement_id})</span>
                   </td>
 
-                  <td className="py-4 px-6 font-extrabold text-base text-[#B3432E]">
+                  <td className="py-4 px-6 font-extrabold text-sm text-[#B3432E]">
                     {formatCondition(req)}
                   </td>
 

@@ -33,6 +33,26 @@ export const INITIAL_TENDERS = [
         approved: true
       },
       {
+        requirement_id: "REQ02A",
+        name: "MSME / MSE Purchase Preference Declaration",
+        category: "LEGAL",
+        operator: "==",
+        required_value: 1,
+        unit: "Valid declaration",
+        source: { clause: "4.3", page: 7 },
+        approved: true
+      },
+      {
+        requirement_id: "REQ02B",
+        name: "EPFO / ESIC Compliance",
+        category: "LEGAL",
+        operator: "==",
+        required_value: 1,
+        unit: "Applicable registration",
+        source: { clause: "4.6", page: 8 },
+        approved: true
+      },
+      {
         requirement_id: "REQ03",
         name: "BIS Quality Certification",
         category: "QUALITY",
@@ -80,6 +100,16 @@ export const INITIAL_TENDERS = [
         required_value: 3,
         unit: "Years",
         source: { clause: "10.1", page: 22 },
+        approved: true
+      },
+      {
+        requirement_id: "REQ08",
+        name: "Blacklisting / Debarment Declaration",
+        category: "LEGAL",
+        operator: "==",
+        required_value: 0,
+        unit: "No active debarment",
+        source: { clause: "11.2", page: 24 },
         approved: true
       }
     ]

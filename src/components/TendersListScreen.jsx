@@ -3,25 +3,18 @@ import { Search, ChevronRight } from 'lucide-react';
 
 export default function TendersListScreen({ tenders, onSelectTender, searchQuery, setSearchQuery }) {
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [deptFilter, setDeptFilter] = useState('ALL');
 
   const filteredTenders = tenders.filter(tender => {
     const matchesSearch = 
-      tender.tender_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tender.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tender.department.toLowerCase().includes(searchQuery.toLowerCase());
+      tender.title.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'ALL' || 
       (statusFilter === 'APPROVED' && tender.checklist_approved) ||
       (statusFilter === 'EVALUATION' && !tender.checklist_approved && tender.status === 'Under Evaluation') ||
       (statusFilter === 'DRAFT' && tender.status === 'Draft');
 
-    const matchesDept = deptFilter === 'ALL' || tender.department === deptFilter;
-
-    return matchesSearch && matchesStatus && matchesDept;
+    return matchesSearch && matchesStatus;
   });
-
-  const departments = ['ALL', ...Array.from(new Set(tenders.map(t => t.department)))];
 
   const renderStatusLabel = (status, approved) => {
     if (approved || status === 'Checklist Approved') {
@@ -66,7 +59,7 @@ export default function TendersListScreen({ tenders, onSelectTender, searchQuery
           <Search className="absolute left-4 top-3.5 h-4 w-4 text-[#786F66]" />
           <input
             type="text"
-            placeholder="Search by Tender ID, Title, or Department..."
+            placeholder="Search uploaded tender documents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 h-11 text-sm bg-[#FAF8F5] border border-[#E5E0DA] rounded-xl focus:outline-none focus:border-[#B3432E] transition-colors"
@@ -88,18 +81,6 @@ export default function TendersListScreen({ tenders, onSelectTender, searchQuery
             </select>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-[#786F66] font-semibold">Department:</span>
-            <select 
-              value={deptFilter} 
-              onChange={(e) => setDeptFilter(e.target.value)}
-              className="h-11 px-3 bg-white border border-[#E5E0DA] rounded-xl text-sm text-[#2B2523] font-semibold focus:outline-none focus:border-[#B3432E]"
-            >
-              {departments.map(d => (
-                <option key={d} value={d}>{d === 'ALL' ? 'All Departments' : d}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
@@ -114,11 +95,8 @@ export default function TendersListScreen({ tenders, onSelectTender, searchQuery
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[#E5E0DA] text-xs font-extrabold uppercase tracking-wider text-[#574E46]">
-                <th className="py-4 px-6">Tender ID</th>
-                <th className="py-4 px-6">Title & Value</th>
-                <th className="py-4 px-6">Department</th>
+                <th className="py-4 px-6">Document</th>
                 <th className="py-4 px-6 text-center">Bids</th>
-                <th className="py-4 px-6">Deadline</th>
                 <th className="py-4 px-6">Status</th>
                 <th className="py-4 px-6 text-right">Action</th>
               </tr>
@@ -126,7 +104,7 @@ export default function TendersListScreen({ tenders, onSelectTender, searchQuery
             <tbody className="divide-y divide-[#E5E0DA] text-sm">
               {filteredTenders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[#786F66] text-sm">
+                  <td colSpan={4} className="text-center py-12 text-[#786F66] text-sm">
                     No tenders found matching criteria.
                   </td>
                 </tr>
@@ -137,27 +115,14 @@ export default function TendersListScreen({ tenders, onSelectTender, searchQuery
                     onClick={() => onSelectTender(tender.tender_id)}
                     className="cursor-pointer hover:bg-[#FAF8F5] transition-colors group"
                   >
-                    <td className="py-4 px-6 font-mono font-extrabold text-sm text-[#B3432E]">
-                      {tender.tender_id}
-                    </td>
-
                     <td className="py-4 px-6">
                       <div className="font-bold text-[#2B2523] text-base group-hover:text-[#B3432E] transition-colors">
                         {tender.title}
                       </div>
-                      <div className="text-xs text-[#786F66] font-medium mt-0.5">Value: <strong className="text-[#2B2523]">{tender.estimated_value}</strong></div>
-                    </td>
-
-                    <td className="py-4 px-6 text-[#574E46] font-semibold text-sm">
-                      {tender.department}
                     </td>
 
                     <td className="py-4 px-6 text-center font-extrabold text-base text-[#2B2523]">
                       {tender.bids_count}
-                    </td>
-
-                    <td className="py-4 px-6 text-xs text-[#786F66] font-medium">
-                      {tender.deadline}
                     </td>
 
                     <td className="py-4 px-6">

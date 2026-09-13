@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 export default function TopBar({ onStartNewScan, searchQuery, setSearchQuery }) {
   return (
@@ -35,11 +35,6 @@ export default function TopBar({ onStartNewScan, searchQuery, setSearchQuery }) 
         {/* Notifications */}
         <button className="p-2 rounded-xl hover:bg-[#F5F1EB] text-[#786F66] hover:text-[#2B2523] transition-colors">
           <Bell className="w-5 h-5" />
-        </button>
-
-        {/* Settings */}
-        <button className="p-2 rounded-xl hover:bg-[#F5F1EB] text-[#786F66] hover:text-[#2B2523] transition-colors">
-          <Settings className="w-5 h-5" />
         </button>
 
         {/* Profile Avatar */}

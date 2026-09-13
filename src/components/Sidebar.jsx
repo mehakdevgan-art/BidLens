@@ -4,7 +4,6 @@ import {
   FileText, 
   CheckSquare, 
   History, 
-  Settings, 
   PlusCircle, 
   Award
 } from 'lucide-react';
@@ -15,9 +14,8 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
     { id: 'tenders', label: 'Tenders', icon: FileText, view: 'tenders' },
-    { id: 'compliance', label: 'Compliance', icon: CheckSquare, badge: pendingReviewCount, view: 'tender_overview' },
+    { id: 'bid_readiness', label: 'Bidder Evaluation', icon: CheckSquare, badge: pendingReviewCount, view: 'bid_readiness' },
     { id: 'audit_trail', label: 'Audit Trail', icon: History, view: 'audit_trail' },
-    { id: 'settings', label: 'Settings', icon: Settings, view: 'settings' },
   ];
 
   return (
