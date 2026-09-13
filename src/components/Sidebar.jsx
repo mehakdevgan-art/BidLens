@@ -1,21 +1,62 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  CheckSquare, 
-  History, 
-  PlusCircle, 
-  Award
+import {
+  LayoutDashboard,
+  FileText,
+  CheckSquare,
+  History,
+  Settings,
+  PlusCircle,
+  Award,
 } from 'lucide-react';
 
-export default function Sidebar({ currentView, setCurrentView, activeTender, onStartNewScan }) {
-  const pendingReviewCount = activeTender ? activeTender.requirements.length : 7;
+export default function Sidebar({
+  currentView,
+  setCurrentView,
+  activeTender,
+  onStartNewScan,
+}) {
+  const pendingReviewCount = activeTender
+    ? activeTender.requirements.length
+    : 7;
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
-    { id: 'tenders', label: 'Tenders', icon: FileText, view: 'tenders' },
-    { id: 'bid_readiness', label: 'Bidder Evaluation', icon: CheckSquare, badge: pendingReviewCount, view: 'bid_readiness' },
-    { id: 'audit_trail', label: 'Audit Trail', icon: History, view: 'audit_trail' },
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      view: 'dashboard',
+    },
+    {
+      id: 'tenders',
+      label: 'Tenders',
+      icon: FileText,
+      view: 'tenders',
+    },
+    {
+      id: 'bid_readiness',
+      label: 'Bidder Evaluation',
+      icon: CheckSquare,
+      badge: pendingReviewCount,
+      view: 'bid_readiness',
+    },
+    {
+      id: 'compliance',
+      label: 'Compliance',
+      icon: CheckSquare,
+      view: 'compliance',
+    },
+    {
+      id: 'audit_trail',
+      label: 'Audit Trail',
+      icon: History,
+      view: 'audit_trail',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      view: 'settings',
+    },
   ];
 
   return (
@@ -26,17 +67,26 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
           <div className="w-9 h-9 rounded-xl bg-[#B3432E] flex items-center justify-center text-white font-bold text-lg shadow-xs">
             <Award className="w-5 h-5 stroke-[2.5]" />
           </div>
+
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-base tracking-tight text-[#2B2523]">BidLens</span>
-              <span className="text-[10px] font-bold text-[#B3432E] bg-rose-100/70 px-1.5 py-0.5 rounded border border-rose-200/70 uppercase">Enterprise</span>
+              <span className="font-extrabold text-base tracking-tight text-[#2B2523]">
+                BidLens
+              </span>
+
+              <span className="text-[10px] font-bold text-[#B3432E] bg-rose-100/70 px-1.5 py-0.5 rounded border border-rose-200/70 uppercase">
+                Enterprise
+              </span>
             </div>
-            <p className="text-xs text-[#786F66] font-medium">Global Procurement Unit</p>
+
+            <p className="text-xs text-[#786F66] font-medium">
+              Global Procurement Unit
+            </p>
           </div>
         </div>
 
         {/* Primary Action Button */}
-        <button 
+        <button
           onClick={onStartNewScan}
           className="w-full bg-[#B3432E] hover:bg-[#9E3824] text-white flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl font-semibold text-sm shadow-xs transition-colors"
         >
@@ -61,9 +111,15 @@ export default function Sidebar({ currentView, setCurrentView, activeTender, onS
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-white' : 'text-[#786F66]'}`} />
+                  <Icon
+                    className={`w-4.5 h-4.5 ${
+                      isActive ? 'text-white' : 'text-[#786F66]'
+                    }`}
+                  />
+
                   <span>{item.label}</span>
                 </div>
+
                 {item.badge !== undefined && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-extrabold ${
